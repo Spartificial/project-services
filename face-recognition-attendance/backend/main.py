@@ -112,7 +112,7 @@ async def register_new_user(file: UploadFile = File(...),
     csv_file_path = os.path.join(DB_PATH, 'user_details.csv')
     is_new_file = not os.path.exists(csv_file_path)
     with open(csv_file_path, 'a', newline='') as csv_file:
-        fieldnames = ['Name', 'Email', 'PhoneNumber', 'Class', 'Division', 'Image_Path', 'Embeddings_Path']
+        fieldnames = ['Name', 'Email', 'Phone Number', 'Class', 'Division', 'Image Path', 'Embeddings Path']
         writer = csv.DictWriter(csv_file, fieldnames=fieldnames)
 
         if is_new_file:
@@ -121,11 +121,11 @@ async def register_new_user(file: UploadFile = File(...),
         writer.writerow({
             'Name': Name,
             'Email': Email,
-            'PhoneNumber': PhoneNumber,
+            'Phone Number': PhoneNumber,
             'Class': Class,
             'Division': Division,
-            'Image_Path': image_path,
-            'Embeddings_Path': embeddings_path
+            'Image Path': image_path,
+            'Embeddings Path': embeddings_path
         })
 
     # Remove the temporary image file
@@ -144,6 +144,12 @@ async def get_attendance_logs():
     ##return File(filename, filename=filename, content_type="application/zip", as_attachment=True)
     return starlette.responses.FileResponse(filename, media_type='application/zip',filename=filename)
 
+@app.get("/get_registered_users_logs")
+async def get_registered_users_logs():
+    db_filename = './db/user_details.csv'
+    filename = 'user_details.csv'  
+    
+    return starlette.responses.FileResponse(db_filename, media_type='application/zip', filename=filename)
 
 def recognize(img):
     # it is assumed there will be at most 1 match in the db

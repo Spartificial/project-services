@@ -6,6 +6,7 @@ import pickle
 import datetime
 import time
 import shutil
+import pytz
 
 import cv2
 from fastapi import FastAPI, File, UploadFile, Form, UploadFile, Response
@@ -47,10 +48,12 @@ async def login(file: UploadFile = File(...)):
     user_name, match_status = recognize(cv2.imread(file.filename))
 
     if match_status:
-        epoch_time = time.time()
-        date = time.strftime('%Y%m%d', time.localtime(epoch_time))
-        with open(os.path.join(ATTENDANCE_LOG_DIR, '{}.csv'.format(date)), 'a') as f:
-            f.write('{},{},{}\n'.format(user_name, datetime.datetime.now(), 'IN'))
+        local_timezone = pytz.timezone('Asia/Kolkata')  
+        current_datetime = datetime.datetime.now(local_timezone)
+        formatted_date = current_datetime.strftime("%Y-%m-%d")
+        formatted_datetime = current_datetime.strftime("%H:%M:%S")
+        with open(os.path.join(ATTENDANCE_LOG_DIR, '{}.csv'.format(formatted_date)), 'a') as f:
+            f.write('{},{},{}\n'.format(user_name, formatted_datetime, 'IN'))
             f.close()
 
     return {'user': user_name, 'match_status': match_status}
@@ -69,10 +72,12 @@ async def logout(file: UploadFile = File(...)):
     user_name, match_status = recognize(cv2.imread(file.filename))
 
     if match_status:
-        epoch_time = time.time()
-        date = time.strftime('%Y%m%d', time.localtime(epoch_time))
-        with open(os.path.join(ATTENDANCE_LOG_DIR, '{}.csv'.format(date)), 'a') as f:
-            f.write('{},{},{}\n'.format(user_name, datetime.datetime.now(), 'OUT'))
+        local_timezone = pytz.timezone('Asia/Kolkata')  
+        current_datetime = datetime.datetime.now(local_timezone)
+        formatted_date = current_datetime.strftime("%Y-%m-%d")
+        formatted_datetime = current_datetime.strftime("%H:%M:%S")
+        with open(os.path.join(ATTENDANCE_LOG_DIR, '{}.csv'.format(formatted_date)), 'a') as f:
+            f.write('{},{},{}\n'.format(user_name, formatted_datetime, 'OUT'))
             f.close()
 
     return {'user': user_name, 'match_status': match_status}
@@ -97,7 +102,7 @@ async def register_new_user(file: UploadFile = File(...), text=None):
 
     os.remove(file.filename)
 
-    return {'registration_status': 200}
+    return {'registration_status': f'Hey {text}, you have been registered successfully into the system!\nProceed to Login!'}
 
 
 @app.get("/get_attendance_logs")

@@ -7,6 +7,7 @@ import datetime
 import time
 import shutil
 import pytz
+import csv
 
 import cv2
 from fastapi import FastAPI, File, UploadFile, Form, UploadFile, Response
@@ -84,31 +85,59 @@ async def logout(file: UploadFile = File(...)):
 
 
 @app.post("/register_new_user")
-async def register_new_user(file: UploadFile = File(...), text=None):
+async def register_new_user(file: UploadFile = File(...), 
+                            Name=None, Email=None, PhoneNumber=None, Class=None, Division=None):
+    
+    Name = Name.title()
     file.filename = f"{uuid.uuid4()}.png"
     contents = await file.read()
 
-    # example of how you can save the file
+    # Save the image file
     with open(file.filename, "wb") as f:
         f.write(contents)
 
-    shutil.copy(file.filename, os.path.join(DB_PATH, '{}.png'.format(text)))
+    # Copy the image to Data Base directory with a filename based on the user's name
+    image_path = os.path.join(DB_PATH, '{}.png'.format(Name))
+    shutil.copy(file.filename, image_path)
 
+    # Get face embeddings using face_recognition library
     embeddings = face_recognition.face_encodings(cv2.imread(file.filename))
 
-    file_ = open(os.path.join(DB_PATH, '{}.pickle'.format(text)), 'wb')
-    pickle.dump(embeddings, file_)
-    print(file.filename, text)
+    # Save the embeddings as a pickle file
+    embeddings_path = os.path.join(DB_PATH, '{}.pickle'.format(Name))
+    with open(embeddings_path, 'wb') as file_:
+        pickle.dump(embeddings, file_)
 
+    # Append user details to the CSV file
+    csv_file_path = os.path.join(DB_PATH, 'user_details.csv')
+    is_new_file = not os.path.exists(csv_file_path)
+    with open(csv_file_path, 'a', newline='') as csv_file:
+        fieldnames = ['Name', 'Email', 'PhoneNumber', 'Class', 'Division', 'Image_Path', 'Embeddings_Path']
+        writer = csv.DictWriter(csv_file, fieldnames=fieldnames)
+
+        if is_new_file:
+            writer.writeheader()
+
+        writer.writerow({
+            'Name': Name,
+            'Email': Email,
+            'PhoneNumber': PhoneNumber,
+            'Class': Class,
+            'Division': Division,
+            'Image_Path': image_path,
+            'Embeddings_Path': embeddings_path
+        })
+
+    # Remove the temporary image file
     os.remove(file.filename)
 
-    return {'registration_status': f'Hey {text}, you have been registered successfully into the system!\nProceed to Login!'}
+    return {'registration_status': f'Hey {Name}, you have been successfully registered into the system!'}
 
 
 @app.get("/get_attendance_logs")
 async def get_attendance_logs():
 
-    filename = 'out.zip'
+    filename = 'attendance.zip'
 
     shutil.make_archive(filename[:-4], 'zip', ATTENDANCE_LOG_DIR)
 

@@ -146,10 +146,21 @@ async def get_attendance_logs():
 
 @app.get("/get_registered_users_logs")
 async def get_registered_users_logs():
+
     db_filename = './db/user_details.csv'
-    filename = 'user_details.csv'  
-    
-    return starlette.responses.FileResponse(db_filename, media_type='application/zip', filename=filename)
+    filename = 'user_details.csv'
+
+    try:
+        # Check if the file exists before proceeding
+        if not os.path.exists(db_filename):
+            return starlette.responses.JSONResponse(content={"message": "No registered users currently."}, status_code=200)
+
+        # If the file exists, return it as a response
+        return starlette.responses.FileResponse(db_filename, media_type='application/zip', filename=filename)
+
+    except FileNotFoundError:
+        # If the file is not found, return a custom response
+        return starlette.responses.JSONResponse(content={"message": "No registered users currently."}, status_code=200)
 
 def recognize(img):
     # it is assumed there will be at most 1 match in the db

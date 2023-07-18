@@ -1,0 +1,101 @@
+/* Style for the entire application */
+body {
+  margin: 0;
+  font-family: Arial, Helvetica, sans-serif;
+  background-color: rgb(226, 211, 190);
+  background-size: cover;
+}
+
+/* Style for the App component container */
+.app {
+  width: 100%; /* Set width to 100% */
+  align-items: center;
+  justify-content: center;
+  margin:0; /* Remove margins */
+}
+
+/* Style for the MasterComponent container */
+.master-component 
+{
+  margin: auto;
+  margin-top: 5%;
+  margin-left: 5%;
+  margin-right: 5%;
+}
+
+/* Style for the Webcam component container */
+.webcam {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.register_img_button
+{
+  margin:auto;
+  align-items: center;
+  justify-content: center;
+}
+
+video {
+  margin: auto; /* aligns element to center */
+  width: 100%; /*set the width*/
+  max-width: 700px;
+}
+
+
+canvas {
+  display: none; /* make the canvas not visible */
+}
+
+.buttons-container {
+  max-width: 700px;
+  width: 100%;
+  margin:auto;
+}
+
+.register-ok-button, .register-cancel-button, .login-button, .register-button, .goback-button, .download-button, .logout-button, .admin-button {
+  transition-duration: 0.4s;
+  width: 100%;
+  margin: none;
+  border: none;
+  background-color: white;
+}
+
+.admin-container, .login-container, .goback-container, .logout-container, .download-container, .register-container, .register-ok-container, .register-text-container, .register-cancel-container
+{
+  display: inline-block;
+  width: 30%;
+  background-color: white;
+}
+
+.text{
+  background-color: white;
+  text-align:center;
+  margin: 0;
+}
+
+.login-container
+{
+  z-index: 2;
+}
+
+.logout-container, .download-container, .register-ok-container
+{
+  margin-left: 5%;
+  margin-right: 5%;
+}
+
+.img{
+  width: 20%; 
+}
+.hidden {
+  display: None;
+  transition: visibility 0.05s;
+}
+
+.visible {
+  display: inline-block;
+  transition: visibility 0.5s;
+}
+

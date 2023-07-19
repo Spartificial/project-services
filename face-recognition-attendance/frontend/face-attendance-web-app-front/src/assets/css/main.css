@@ -2,7 +2,7 @@
 body {
   margin: 0;
   font-family: Arial, Helvetica, sans-serif;
-  background-color: rgb(226, 211, 190);
+  background-color: rgb(226, 211, 190) !important;
   background-size: cover;
 }
 
@@ -18,9 +18,16 @@ body {
 .master-component 
 {
   margin: auto;
-  margin-top: 5%;
+  margin-top: 2%;
   margin-left: 5%;
   margin-right: 5%;
+}
+
+.heading
+{
+  margin: auto;
+  text-align: center;
+  margin-bottom: 1%;
 }
 
 /* Style for the Webcam component container */
@@ -58,18 +65,15 @@ canvas {
   width: 100%;
   margin: none;
   border: none;
-  background-color: white;
 }
 
 .admin-container, .login-container, .register-retake-container, .goback-container, .logout-container, .download-container, .register-container, .register-ok-container, .register-text-container, .register-cancel-container
 {
   display: inline-block;
   width: 30%;
-  background-color: white;
 }
 
 .text{
-  background-color: white;
   text-align:center;
   margin: 0;
 }
@@ -81,7 +85,7 @@ canvas {
 
 .form
 {
-  background-color: white;
+  background-color: rgb(226, 211, 190) !important;
   width: 100%;
   display:flex;
 }
@@ -110,6 +114,24 @@ canvas {
 .img{
   width: 20%; 
 }
+
+#class, #section, #number
+{
+  margin-left:5%;
+}
+
+#name, #class, #section
+{
+  margin-bottom: 2%;
+  margin-top: 2%;
+}
+
+.logout-form-container
+{
+  width: 30%;
+  margin-left: 35%;
+}
+
 .hidden {
   display: None;
   transition: visibility 0.05s;

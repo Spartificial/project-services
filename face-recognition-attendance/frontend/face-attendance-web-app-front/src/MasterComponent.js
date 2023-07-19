@@ -120,7 +120,7 @@ function MasterComponent() {
           })
           .then((response) => {
             console.log(response.data);
-            if (response.data.match_status == 'Logged out successfully.') {
+            if (response.data.message == 'Logged out successfully.') {
               alert("Goodbye " + response.data.user + " !");
             } else {
               alert("Unknown user! Please try again or register new user!");

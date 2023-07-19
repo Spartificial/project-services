@@ -20,9 +20,9 @@ function MasterComponent() {
   const [showWebcam, setShowWebcam] = useState(true);
   const [showImg, setShowImg] = useState(false);
 
-  function register_new_user_ok(text) {
+  function register_new_user_ok(Name, Email, Number, Class, Section) {
     if (lastFrame) {
-      const apiUrl = API_BASE_URL + "/register_new_user?text=" + text;
+      const apiUrl = API_BASE_URL + "/register_new_user?name=" + Name + "&email=" + Email + "&number=" + Number+ "&class=" + Class+ "&section=" + Section;
       console.log(typeof lastFrame);
       fetch(lastFrame)
         .then((response) => response.blob())
@@ -144,7 +144,9 @@ function MasterComponent() {
       {showWebcam ? (
         <Webcam lastFrame={lastFrame} setLastFrame={setLastFrame} />
       ) : (
-        <img className="register_photo_img" src={lastFrame} />
+        <div className="webcam">
+            <img className="register_img" src={lastFrame} />
+        </div>
       )}
       <Buttons
         lastFrame={lastFrame}
@@ -245,8 +247,14 @@ function Buttons({
   register_new_user_ok,
   downloadLogs,
 }) {
+  const submit_ref = useRef();
+  const retake_image_ref = useRef();
+  const cancel_register_ref = useRef();
+
   const [isRegistering, setIsRegistering] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
+  
+  const [retake_text, set_retake_text] = useState("Retake Photo");
 
   const [zIndexAdmin, setZIndexAdmin] = useState(1);
   const [zIndexRegistering, setZIndexRegistering] = useState(1);
@@ -259,73 +267,117 @@ function Buttons({
     setZIndexRegistering(newZIndex);
   };
 
-  const [value, setValue] = useState("");
-
-  const handleChange = (event) => {
-    setValue(event.target.value);
-  };
+  const [Name, setName] = useState("");
+  const [Email, setEmail] = useState("");
+  const [Number, setNumber] = useState("");
+  const [Class, setClass] = useState("");
+  const [Section, setSection] = useState("");
 
   const resetTextBox = () => {
-    setValue("");
+    setName("");
+    setEmail("");
+    setNumber("");
+    setClass("");
+    setSection("");
   };
 
+  const handleName = (event) => {
+    setName(event.target.value);
+  };
+
+  const handleEmail = (event) => {
+    setEmail(event.target.value);
+  };
+
+  const handleNumber = (event) => {
+    setNumber(event.target.value);
+  };
+
+  const handleClass = (event) => {
+    setClass(event.target.value);
+  };
+
+  const handleSection = (event) => {
+    setSection(event.target.value);
+  };
+  const form=<div className="form">
+        <input
+          className="register-input"
+          id="name"
+          type="text"
+          placeholder="Full Name"
+          value={Name}
+          onChange={handleName}
+          required
+        />
+        <input
+          className="register-input"
+          id="email"
+          type="email"
+          placeholder="Email"
+          value={Email}
+          onChange={handleEmail}
+          required
+        />
+        <input
+          className="register-input"
+          id="number"
+          type="number"
+          placeholder="Phone Number"
+          value={Number}
+          onChange={handleNumber}
+          required
+        />
+        <select
+          className="register-input"
+          id="class"
+          placeholder="Class"
+          value={Class}
+          onChange={handleClass}
+        >
+        <option value="default">class</option>
+        <option value="1">1</option>
+        <option value="2">2</option>
+        <option value="3">3</option>
+        <option value="4">4</option>
+        <option value="5">5</option>
+        <option value="6">6</option>
+        <option value="7">7</option>
+        <option value="8">8</option>
+        <option value="9">9</option>
+        <option value="10">10</option>
+        <option value="11">11</option>
+        <option value="12">12</option>
+        </select>
+        <input
+          className="register-input"
+          id="section"
+          type="text"
+          placeholder="Section"
+          value={Section}
+          onChange={handleSection}
+          required
+        />
+    </div>
+  
+
   return (
+    <div>
     <div className="buttons-container">
       <div
         className={`${
           isRegistering ? "visible" : "hidden"
-        } register-text-container`}
+        } register-retake-container`}
         style={{
           zIndex: zIndexRegistering,
         }}
+        ref={retake_image_ref}
       >
-        <input
-          className="register-text"
-          type="text"
-          placeholder="Full Name"
-          value={value}
-          onChange={handleChange}
-        />
-        <input
-          className="register-text"
-          type="email"
-          placeholder="Email"
-          value={value}
-          onChange={handleChange}
-        />
-        <input
-          className="register-text"
-          type="number"
-          placeholder="Phone Number"
-          value={value}
-          onChange={handleChange}
-        />
-        <input
-          className="register-text"
-          type="text"
-          placeholder="Class"
-          value={value}
-          onChange={handleChange}
-        />
-        <input
-          className="register-text"
-          type="text"
-          placeholder="Section"
-          value={value}
-          onChange={handleChange}
-        />
-      </div>
-      <div
-        className={`${
-          isRegistering ? "visible" : "hidden"
-        } register-ok-container`}
-        style={{
-          zIndex: zIndexRegistering,
-        }}
-      >
-        <button
-          className={`register-ok-button`}
-          onClick={async () => {
+      
+      <button
+          className={`register-retake-button`}
+          onClick={() => {
+            // clear all data
             setIsAdmin(false);
             setIsRegistering(false);
 
@@ -334,12 +386,80 @@ function Buttons({
 
             setShowWebcam(true);
             setShowImg(false);
-            register_new_user_ok(value);
+
+            // reset registering 
+            setIsRegistering(true);
+
+            changeZIndexAdmin(1);
+            changeZIndexRegistering(3);
+
+            saveLastFrame(
+              canvasRef,
+              lastFrame,
+              setLastFrame,
+              setShowWebcam,
+              showWebcam,
+              setShowImg
+            );
+            resetTextBox();
+            if (retake_text == "Retake Photo")
+            {
+              set_retake_text("Confirm Retake");
+              submit_ref.current.style.display= "None"; 
+              retake_image_ref.current.style.width= "45%"; 
+              cancel_register_ref.current.style.width= "45%";
+              cancel_register_ref.current.style.margin= "0 0 0 10%";
+            }
+            else
+            {
+              set_retake_text("Retake Photo");
+              submit_ref.current.style.display= "inline-block";
+              retake_image_ref.current.style.width= "30%"; 
+              cancel_register_ref.current.style.width= "30%";
+              cancel_register_ref.current.style.margin= "0 0 0 0";
+            }
+
           }}
         >
-        <img src={submit_button} class="img"></img>
-        <p class="text">Submit</p>
-</button>
+        <img src={register_button} className="img"></img>
+          <p className="text">{retake_text}</p>
+        </button>
+      </div>
+      <div
+        className={`${
+          isRegistering ? "visible" : "hidden"
+        } register-ok-container`}
+        style={{
+          zIndex: zIndexRegistering,
+        }}
+        ref={submit_ref}
+      >
+        <button
+          className={`register-ok-button`}
+          onClick={async () => {
+            if (Name == ''){alert("Name Is Empty!");}
+            else if (Email == ''){alert("Email Is Empty!");}
+            else if (Number == ''){alert("Number Is Empty!");}
+            else if (Class == ''){alert("Class Is Empty!");}
+            else if (Section == ''){alert("Section Is Empty!");}
+            else{
+              register_new_user_ok(Name, Email, Number, Class, Section);
+              setIsAdmin(false);
+              setIsRegistering(false);
+              
+              changeZIndexAdmin(1);
+              changeZIndexRegistering(1);
+
+              setShowWebcam(true);
+              setShowImg(false);
+            
+              submit_ref.current.style.display= "None"; 
+            }
+          }}
+        >
+        <img src={submit_button} className="img"></img>
+        <p className="text">Submit</p>
+        </button>
       </div>
       <div
         className={`${
@@ -348,6 +468,7 @@ function Buttons({
         style={{
           zIndex: zIndexRegistering,
         }}
+        ref={cancel_register_ref}
       >
         <button
           className={`register-cancel-button`}
@@ -362,8 +483,8 @@ function Buttons({
             setShowImg(false);
           }}
         >
-        <img src={cancel_button} class="img"></img>
-        <p class="text">Cancel</p>
+        <img src={cancel_button} className="img"></img>
+        <p className="text">Cancel</p>
         </button>
       </div>
       <div className={`${
@@ -377,8 +498,8 @@ function Buttons({
             send_img_login();
           }}
         >
-        <img src={login_button} class="img"></img>
-        <p class="text">Log In</p>  
+        <img src={login_button} className="img"></img>
+        <p className="text">Log In</p>  
         </button>
       </div>
       <div className={`${
@@ -390,8 +511,8 @@ function Buttons({
             send_img_logout();
           }}
         >
-        <img src={logout_button} class="img"></img>
-        <p class="text">Log Out</p>
+        <img src={logout_button} className="img"></img>
+        <p className="text">Log Out</p>
         </button>
       </div>
       <div className={`${
@@ -407,8 +528,8 @@ function Buttons({
             changeZIndexRegistering(1);
           }}
         >
-        <img src={admin_button} class="img"></img>
-        <p class="text">Admin</p>
+        <img src={admin_button} className="img"></img>
+        <p className="text">Admin</p>
         </button>
       </div>
       <div
@@ -435,11 +556,16 @@ function Buttons({
               setShowImg
             );
             resetTextBox();
-
+            set_retake_text("Retake Photo");
+            
+            submit_ref.current.style.display= "inline-block";
+            retake_image_ref.current.style.width= "30%"; 
+            cancel_register_ref.current.style.width= "30%";
+            cancel_register_ref.current.style.margin= "0 0 0 0";
           }}
         >
-        <img src={register_button} class="img"></img>
-        <p class="text">Register</p>
+        <img src={register_button} className="img"></img>
+        <p className="text">Register</p>
         </button>
       </div>  
 
@@ -461,8 +587,8 @@ function Buttons({
             downloadLogs();
           }}
         >
-        <img src={download_logs_icon} class="img"></img>
-        <p class="text">Download Log</p>
+        <img src={download_logs_icon} className="img"></img>
+        <p className="text">Download Log</p>
         </button>
       </div>
       
@@ -482,11 +608,23 @@ function Buttons({
             changeZIndexRegistering(1);
           }}
         >
-        <img src={go_back_button} class="img"></img>
-        <p class="text">Home Page</p>
+        <img src={go_back_button} className="img"></img>
+        <p className="text">Home Page</p>
         </button>
       </div>
     </div>
+    
+    <div
+    className={`${
+      isRegistering ? "block-visible" : "hidden"
+    } register-form-container`}
+    style={{
+      zIndex: zIndexRegistering,
+    }}
+    >
+      {form}
+    </div>
+  </div>
   );
 }
 export default MasterComponent;

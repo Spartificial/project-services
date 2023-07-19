@@ -30,11 +30,10 @@ body {
   justify-content: center;
 }
 
-.register_img_button
+.register_img
 {
-  margin:auto;
-  align-items: center;
-  justify-content: center;
+  width: 100%; /*set the width*/
+  max-width: 700px;
 }
 
 video {
@@ -54,7 +53,7 @@ canvas {
   margin:auto;
 }
 
-.register-ok-button, .register-cancel-button, .login-button, .register-button, .goback-button, .download-button, .logout-button, .admin-button {
+.register-ok-button, .register-cancel-button, .login-button, .register-retake-button, .register-button, .goback-button, .download-button, .logout-button, .admin-button {
   transition-duration: 0.4s;
   width: 100%;
   margin: none;
@@ -62,7 +61,7 @@ canvas {
   background-color: white;
 }
 
-.admin-container, .login-container, .goback-container, .logout-container, .download-container, .register-container, .register-ok-container, .register-text-container, .register-cancel-container
+.admin-container, .login-container, .register-retake-container, .goback-container, .logout-container, .download-container, .register-container, .register-ok-container, .register-text-container, .register-cancel-container
 {
   display: inline-block;
   width: 30%;
@@ -78,6 +77,28 @@ canvas {
 .login-container
 {
   z-index: 2;
+}
+
+.form
+{
+  background-color: white;
+  width: 100%;
+  display:flex;
+}
+
+.register-input
+{
+  width: 20%;
+  padding: 0;
+  margin: 0;
+  border: 1px solid;
+}
+
+.register-form-container
+{
+  max-width: 700px;
+  width: 100%;
+  margin:auto;
 }
 
 .logout-container, .download-container, .register-ok-container
@@ -96,6 +117,11 @@ canvas {
 
 .visible {
   display: inline-block;
+  transition: visibility 0.5s;
+}
+
+.block-visible {
+  display: block;
   transition: visibility 0.5s;
 }
 

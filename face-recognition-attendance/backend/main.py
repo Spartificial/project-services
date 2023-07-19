@@ -28,8 +28,27 @@ for dir_ in [ATTENDANCE_LOG_DIR, DB_PATH, LOGIN_DIR]:
 
 app = FastAPI()
 
+def get_login_status_csv():
+    # Get the current date
+    local_timezone = pytz.timezone('Asia/Kolkata')
+    current_datetime = datetime.datetime.now(local_timezone)
+    formatted_date = current_datetime.strftime("%Y-%m-%d")
+
+    # Generate the CSV file name for the current date
+    return os.path.join(ATTENDANCE_LOG_DIR, f"{formatted_date}.csv")
+
 # Dictionary to store logged-in users and their login status
 logged_in_users = {}
+
+# Load the logged-in user information from the CSV file
+LOGIN_STATUS_CSV = get_login_status_csv()
+if os.path.exists(LOGIN_STATUS_CSV):
+    with open(LOGIN_STATUS_CSV, newline='') as csvfile:
+        reader = csv.reader(csvfile)
+        for row in reader:
+            email_id, login_time, is_logged_in = row
+            # Convert the is_logged_in value to a boolean
+            logged_in_users[email_id] = is_logged_in == "IN"
 
 origins = ["*"]
 
@@ -53,26 +72,30 @@ async def login(file: UploadFile = File(...)):
     with open(file.filename, "wb") as f:
         f.write(contents)
 
-    user_name, match_status = recognize(cv2.imread(file.filename))
+    email_id, match_status = recognize(cv2.imread(file.filename))
+
+    if email_id in logged_in_users and logged_in_users[email_id]:
+        return {"user": email_id, "message": "You are already logged in."}
 
     if match_status:
-        logged_in_users[user_name] = True
+        logged_in_users[email_id] = True
         local_timezone = pytz.timezone('Asia/Kolkata')  
         current_datetime = datetime.datetime.now(local_timezone)
         formatted_date = current_datetime.strftime("%Y-%m-%d")
         formatted_datetime = current_datetime.strftime("%H:%M:%S")
         with open(os.path.join(ATTENDANCE_LOG_DIR, '{}.csv'.format(formatted_date)), 'a') as f:
-            f.write('{},{},{}\n'.format(user_name, formatted_datetime, 'IN'))
+            f.write('{},{},{}\n'.format(email_id, formatted_datetime, 'IN'))
             f.close()
 
-    return {'user': user_name, 'match_status': match_status}
+    return {'user': email_id, 'match_status': match_status}
 
 
 @app.post("/logout")
 async def logout(email: str):
+
     # Check if the user is already logged in
     if not logged_in_users[email]:
-        return {"user": email.title(), "message": "User is not logged in."}
+        return {"user": email, "message": "User is not logged in."}
     else:
         local_timezone = pytz.timezone('Asia/Kolkata')  
         current_datetime = datetime.datetime.now(local_timezone)

@@ -2,19 +2,15 @@
 from __future__ import annotations
 
 import os
-import string
-import urllib
 import uuid
 import pickle
 import datetime
-import time
 import shutil
 import pytz
 import csv
 
 import cv2
-from fastapi import FastAPI, File, UploadFile, Form, UploadFile, Response
-from fastapi.responses import FileResponse
+from fastapi import FastAPI, File, UploadFile, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 import face_recognition
 import starlette
@@ -64,18 +60,47 @@ def get_login_status_csv():
     # Generate the CSV file name for the current date and return the complete file path
     return os.path.join(ATTENDANCE_LOG_DIR, f"{formatted_date}.csv")
 
-# Dictionary to store logged-in users and their login status
-logged_in_users = {}
+def get_logged_in_users():
+    logged_in_users = {}
 
-# Load the logged-in user information from the CSV file
-LOGIN_STATUS_CSV = get_login_status_csv()
-if os.path.exists(LOGIN_STATUS_CSV):
-    with open(LOGIN_STATUS_CSV, newline='') as csvfile:
-        reader = csv.reader(csvfile)
-        for row in reader:
-            email_id, login_time, is_logged_in = row
-            # Convert the is_logged_in value to a boolean
-            logged_in_users[email_id] = is_logged_in == "IN"
+    LOGIN_STATUS_CSV = get_login_status_csv()
+    if os.path.exists(LOGIN_STATUS_CSV):
+        with open(LOGIN_STATUS_CSV, newline='') as csvfile:
+            reader = csv.reader(csvfile)
+            for row in reader:
+                email_id, login_time, is_logged_in = row
+                # Convert the is_logged_in value to a boolean
+                logged_in_users[email_id] = is_logged_in == "IN"
+
+    return logged_in_users
+
+
+def get_registered_users():
+    registered_users = []
+
+    USERS_CSV = r"db\user_details.csv"
+
+    if os.path.exists(USERS_CSV):
+        with open(USERS_CSV, newline='') as csvfile:
+            reader = csv.reader(csvfile)
+            for row in reader:
+                user = {}
+                name, email, phone, class_, division, _, _ = row
+                # Convert the is_logged_in value to a boolean
+                user["name"] = name
+                user["email"] = email
+                user["phone"] = phone
+                user["class"] = class_
+                user["division"] = division
+                registered_users.append(user)
+
+    return registered_users
+
+
+@app.get("/")
+async def root():
+    return {'status': 200, "message": "App running successfully"}
+
 
 @app.post("/login")
 async def login(file: UploadFile = File(...)):
@@ -101,6 +126,7 @@ async def login(file: UploadFile = File(...)):
     email_id, match_status = recognize(cv2.imread(file.filename))
 
     # Check if the user is already logged in
+    logged_in_users = get_logged_in_users()
     if email_id in logged_in_users and logged_in_users[email_id]:
         return {"user": email_id, "message": "You are already logged in."}
 
@@ -131,7 +157,14 @@ async def logout(email: str):
     """
 
     # Check if the user is already logged in
-    if not logged_in_users[email]:
+    registered_users = get_registered_users()
+    registered_emails = [user['email'] for user in registered_users]
+    if email not in registered_emails:
+        return {"user": email, "message": "User does not exist"}
+
+
+    logged_in_users = get_logged_in_users()
+    if email not in logged_in_users.keys():
         return {"user": email, "message": "User is not logged in."}
     
     else:
@@ -162,23 +195,13 @@ def user_already_registered(email: str) -> bool:
     bool: True if a user with the given email is found in the 'user_details.csv' file, False otherwise.
     """
 
-    # Path to the CSV file containing registered user details
-    csv_file_path = os.path.join(DB_PATH, 'user_details.csv')
+    registered_users = get_registered_users()
 
-    # Check if the csv file exists
-    if os.path.exists(csv_file_path):
-        # Open the csv file for reading
-        with open(csv_file_path, 'r') as csv_file:
-            # Create a CSV reader with the first row as header
-            reader = csv.DictReader(csv_file)
-            # Loop through each row in the CSV file
-            for row in reader:
-                # Check if the 'Email' field in the row matches the given email
-                if row['Email']== email:
-                    # If a match is found, return True
-                    return True
-    # If no match is found or the CSV file doesn't exist, return False
+    if email in [user['email'] for user in registered_users]:
+        return True
+    
     return False
+
 
 @app.post("/register_new_user")
 async def register_new_user(name: str,
@@ -220,21 +243,19 @@ async def register_new_user(name: str,
     
     # Format the name to title case
     name = name.title()
+
+    # Save the uploaded image file
+    image_path = os.path.join(DB_PATH, '{}.png'.format(email))
     
     # Set a unique filename for the uploaded image
-    file.filename = f"{uuid.uuid4()}.png"
     contents = await file.read()
 
-    # Save the image file
-    with open(file.filename, "wb") as f:
+    # # Save the image file
+    with open(image_path, "wb") as f:
         f.write(contents)
 
-    # Copy the image to Data Base directory with a filename based on the user's name
-    image_path = os.path.join(DB_PATH, '{}.png'.format(email))
-    shutil.copy(file.filename, image_path)
-
     # Get face embeddings using face_recognition library
-    embeddings = face_recognition.face_encodings(cv2.imread(file.filename))
+    embeddings = face_recognition.face_encodings(cv2.imread(image_path))
 
     # Save the embeddings as a pickle file
     embeddings_path = os.path.join(DB_PATH, '{}.pickle'.format(email))
@@ -244,6 +265,7 @@ async def register_new_user(name: str,
     # Append user details to the CSV file
     csv_file_path = os.path.join(DB_PATH, 'user_details.csv')
     is_new_file = not os.path.exists(csv_file_path)
+
     with open(csv_file_path, 'a', newline='') as csv_file:
         fieldnames = ['Name', 'Email', 'Phone Number', 'Class', 'Division', 'Image Path', 'Embeddings Path']
         writer = csv.DictWriter(csv_file, fieldnames=fieldnames)
@@ -260,9 +282,6 @@ async def register_new_user(name: str,
             'Image Path': image_path,
             'Embeddings Path': embeddings_path
         })
-
-    # Remove the temporary image file
-    os.remove(file.filename)
 
     return {'status': 200, 
             "user" : email,
@@ -360,6 +379,7 @@ def recognize(img):
 
         # Load the embeddings from the database pickle file
         file = open(path_, 'rb')
+
         embeddings = pickle.load(file)[0]
 
         # Compare the embeddings from the database with the input image embeddings

@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import os
 import string
 import urllib
@@ -67,10 +69,10 @@ async def login(file: UploadFile = File(...)):
 
 
 @app.post("/logout")
-async def logout(user_name):
+async def logout(email: str):
     # Check if the user is already logged in
-    if not logged_in_users[user_name]:
-        return {"user": user_name.title(), "message": "User is not logged in."}
+    if not logged_in_users[email]:
+        return {"user": email.title(), "message": "User is not logged in."}
     else:
         local_timezone = pytz.timezone('Asia/Kolkata')  
         current_datetime = datetime.datetime.now(local_timezone)
@@ -78,17 +80,22 @@ async def logout(user_name):
         formatted_datetime = current_datetime.strftime("%H:%M:%S")
 
         with open(os.path.join(ATTENDANCE_LOG_DIR, '{}.csv'.format(formatted_date)), 'a') as f:
-            f.write('{},{},{}\n'.format(user_name, formatted_datetime, 'OUT'))
+            f.write('{},{},{}\n'.format(email, formatted_datetime, 'OUT'))
 
         # Update the login status to indicate the user has logged out
-        logged_in_users[user_name] = False
+        logged_in_users[email] = False
 
-        return {'user': user_name, 'message': 'Logged out successfully.'}
+        return {'user': email, 'message': 'Logged out successfully.'}
 
 
 @app.post("/register_new_user")
-async def register_new_user(file: UploadFile = File(...), 
-                            name=None, email=None, phone_number=None, class_=None, division=None):
+async def register_new_user(name: str,
+                            email: str,
+                            phone_number: str,
+                            class_: str,
+                            division: str,
+                            file: UploadFile = File(...), 
+                            ):
     
     name = name.title()
     file.filename = f"{uuid.uuid4()}.png"
@@ -133,7 +140,7 @@ async def register_new_user(file: UploadFile = File(...),
     # Remove the temporary image file
     os.remove(file.filename)
 
-    return {'registration_status': 200}
+    return {'status': 200, "message": f"{name} registered successfully."}
 
 
 @app.get("/get_attendance_logs")

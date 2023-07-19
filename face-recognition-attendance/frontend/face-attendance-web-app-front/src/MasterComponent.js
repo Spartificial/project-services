@@ -99,7 +99,7 @@ function MasterComponent() {
     }
   }
 
-  function send_img_logout() {
+  function send_img_logout(Logout) {
     if (videoRef.current && canvasRef.current) {
       context = canvasRef.current.getContext("2d");
       context.drawImage(videoRef.current, 0, 0, 400, 300);
@@ -109,12 +109,8 @@ function MasterComponent() {
 
         // Your edition here
 
-        const apiUrl = API_BASE_URL + "/logout";
-        const file = new File([blob], "webcam-frame.png", {
-          type: "image/png",
-        });
+        const apiUrl = API_BASE_URL + "/logout?email="+Logout;
         const formData = new FormData();
-        formData.append("file", file);
 
         axios
           .post(apiUrl, formData, {
@@ -124,7 +120,7 @@ function MasterComponent() {
           })
           .then((response) => {
             console.log(response.data);
-            if (response.data.match_status == true) {
+            if (response.data.match_status == 'Logged out successfully.') {
               alert("Goodbye " + response.data.user + " !");
             } else {
               alert("Unknown user! Please try again or register new user!");
@@ -513,7 +509,7 @@ function Buttons({
         <button
           className={`logout-button btn btn-danger`}
           onClick={() => {
-            send_img_logout();
+            send_img_logout(Logout);
           }}
         >
         <p className="text">Log Out</p>

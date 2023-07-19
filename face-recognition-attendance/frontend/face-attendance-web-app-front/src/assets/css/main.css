@@ -27,7 +27,7 @@ body {
 {
   margin: auto;
   text-align: center;
-  margin-bottom: 1%;
+  margin-bottom: 3%;
 }
 
 /* Style for the Webcam component container */
@@ -40,13 +40,13 @@ body {
 .register_img
 {
   width: 100%; /*set the width*/
-  max-width: 700px;
+  max-width: 600px;
 }
 
 video {
   margin: auto; /* aligns element to center */
   width: 100%; /*set the width*/
-  max-width: 700px;
+  max-width: 600px;
 }
 
 
@@ -55,7 +55,7 @@ canvas {
 }
 
 .buttons-container {
-  max-width: 700px;
+  max-width: 600px;
   width: 100%;
   margin:auto;
 }
@@ -100,7 +100,7 @@ canvas {
 
 .register-form-container
 {
-  max-width: 700px;
+  max-width: 600px;
   width: 100%;
   margin:auto;
 }
@@ -147,3 +147,32 @@ canvas {
   transition: visibility 0.5s;
 }
 
+@media screen and (max-width: 1100px) {
+  .heading
+  {
+    font-size:3rem !important;
+  }
+  .master-component
+  { 
+    width:90%; 
+    margin-left: 5%;
+    margin-right: 5%;
+  }
+}
+@media screen and (max-width: 470px) {
+  .heading
+  {
+    font-size:2rem !important;
+  }
+  .btn{
+    font-size: smaller !important;
+  }
+}
+
+
+
+@media screen and (max-width: 470px) {
+  .btn{
+    font-size: x-small !important;
+  }
+}

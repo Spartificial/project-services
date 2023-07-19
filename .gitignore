@@ -1,0 +1,6 @@
+face-recognition-attendance/frontend/face-attendance-web-app-front/node_modules/
+__pycache__
+face-recognition-attendance/backend/db
+face-recognition-attendance/backend/login
+face-recognition-attendance/backend/logs
+face-recognition-attendance/backend/attendance.zip

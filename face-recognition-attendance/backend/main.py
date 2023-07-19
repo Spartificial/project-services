@@ -28,6 +28,16 @@ for dir_ in [ATTENDANCE_LOG_DIR, DB_PATH, LOGIN_DIR]:
 
 app = FastAPI()
 
+origins = ["*"]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 def get_login_status_csv():
     # Get the current date
     local_timezone = pytz.timezone('Asia/Kolkata')
@@ -50,21 +60,19 @@ if os.path.exists(LOGIN_STATUS_CSV):
             # Convert the is_logged_in value to a boolean
             logged_in_users[email_id] = is_logged_in == "IN"
 
-origins = ["*"]
-
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=origins,
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
-
+def user_already_registered(email: str) -> bool:
+    csv_file_path = os.path.join(DB_PATH, 'user_details.csv')
+    if os.path.exists(csv_file_path):
+        with open(csv_file_path, 'r') as csv_file:
+            reader = csv.DictReader(csv_file)
+            for row in reader:
+                if row['Email'].lower() == email.lower():
+                    return True
+    return False
 
 @app.post("/login")
 async def login(file: UploadFile = File(...)):
 
-    
     file.filename = f"{LOGIN_DIR}/{uuid.uuid4()}.png"
     contents = await file.read()
 
@@ -119,6 +127,9 @@ async def register_new_user(name: str,
                             division: str,
                             file: UploadFile = File(...), 
                             ):
+    
+    if user_already_registered(email):
+        return {'status': 400, "message": f"{email} is already registered! Proceed to login."}
     
     name = name.title()
     file.filename = f"{uuid.uuid4()}.png"

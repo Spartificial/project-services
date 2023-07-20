@@ -1,15 +1,7 @@
 import React, { useRef, useEffect, useState } from "react";
 import axios from "axios";
 import API_BASE_URL from "./API";
-
-import submit_button from "./assets/imgs/accept_button.png";
-import admin_button from "./assets/imgs/admin_button.png";
-import cancel_button from "./assets/imgs/cancel_button.png";
-import download_logs_icon from "./assets/imgs/download_logs_icon.png";
-import login_button from "./assets/imgs/login_button.png";
-import go_back_button from "./assets/imgs/go_back_button.png";
-import register_button from "./assets/imgs/register_button.png";
-import logout_button from "./assets/imgs/logout_button.png";
+import "./assets/css/main.css";
 
 let videoRef;
 let canvasRef;
@@ -22,7 +14,7 @@ function MasterComponent() {
 
   function register_new_user_ok(Name, Email, Number, Class, Section) {
     if (lastFrame) {
-      const apiUrl = API_BASE_URL + "/register_new_user?name=" + Name + "&email=" + Email + "&number=" + Number+ "&class=" + Class+ "&section=" + Section;
+      const apiUrl = API_BASE_URL + "/register_new_user?name=" + Name + "&email=" + Email + "&phone_number=" + Number+ "&class_=" + Class+ "&division=" + Section;
       console.log(typeof lastFrame);
       fetch(lastFrame)
         .then((response) => response.blob())
@@ -91,18 +83,23 @@ function MasterComponent() {
             console.log(response.data);
             if (response.data.match_status == true) {
               alert("Welcome back " + response.data.user + " !");
-            } else {
+            } 
+            else if (response.data.message == false)
+            {
               alert("Unknown user! Please try again or register new user!");
+            }
+            else{
+              alert("You are already logged in!");
             }
           })
           .catch((error) => {
-            console.error("Error sending image to API:", error);
+            console.error(apiUrl, error);
           });
       });
     }
   }
 
-  function send_img_logout() {
+  function send_img_logout(Logout) {
     if (videoRef.current && canvasRef.current) {
       context = canvasRef.current.getContext("2d");
       context.drawImage(videoRef.current, 0, 0, 400, 300);
@@ -112,12 +109,8 @@ function MasterComponent() {
 
         // Your edition here
 
-        const apiUrl = API_BASE_URL + "/logout";
-        const file = new File([blob], "webcam-frame.png", {
-          type: "image/png",
-        });
+        const apiUrl = API_BASE_URL + "/logout?email="+Logout;
         const formData = new FormData();
-        formData.append("file", file);
 
         axios
           .post(apiUrl, formData, {
@@ -127,7 +120,7 @@ function MasterComponent() {
           })
           .then((response) => {
             console.log(response.data);
-            if (response.data.match_status == true) {
+            if (response.data.message == 'Logged out successfully.') {
               alert("Goodbye " + response.data.user + " !");
             } else {
               alert("Unknown user! Please try again or register new user!");
@@ -141,6 +134,7 @@ function MasterComponent() {
   }
   return (
     <div className="master-component">
+      <h1 className="display-3 heading">Face Recognition Attendance</h1>
       {showWebcam ? (
         <Webcam lastFrame={lastFrame} setLastFrame={setLastFrame} />
       ) : (
@@ -273,6 +267,12 @@ function Buttons({
   const [Class, setClass] = useState("");
   const [Section, setSection] = useState("");
 
+  const [Logout, setLogout] = useState("");
+
+  const handlelogout = (event) => {
+    setLogout(event.target.value);
+  };
+
   const resetTextBox = () => {
     setName("");
     setEmail("");
@@ -300,9 +300,9 @@ function Buttons({
   const handleSection = (event) => {
     setSection(event.target.value);
   };
-  const form=<div className="form">
+  const form=<div><div className="form">
         <input
-          className="register-input"
+          className="form-control"
           id="name"
           type="text"
           placeholder="Full Name"
@@ -310,8 +310,40 @@ function Buttons({
           onChange={handleName}
           required
         />
+        <select
+          className="custom-select"
+          id="class"
+          placeholder="Class"
+          value={Class}
+          onChange={handleClass}
+        >
+          <option value="default">class</option>
+          <option value="1">1</option>
+          <option value="2">2</option>
+          <option value="3">3</option>
+          <option value="4">4</option>
+          <option value="5">5</option>
+          <option value="6">6</option>
+          <option value="7">7</option>
+          <option value="8">8</option>
+          <option value="9">9</option>
+          <option value="10">10</option>
+          <option value="11">11</option>
+          <option value="12">12</option>
+        </select>
         <input
-          className="register-input"
+          className="form-control"
+          id="section"
+          type="text"
+          placeholder="Section"
+          value={Section}
+          onChange={handleSection}
+          required
+        />
+        </div>
+        <div className="form">
+        <input
+          className="form-control"
           id="email"
           type="email"
           placeholder="Email"
@@ -320,45 +352,16 @@ function Buttons({
           required
         />
         <input
-          className="register-input"
+          className="form-control"
           id="number"
           type="number"
           placeholder="Phone Number"
           value={Number}
           onChange={handleNumber}
           required
-        />
-        <select
-          className="register-input"
-          id="class"
-          placeholder="Class"
-          value={Class}
-          onChange={handleClass}
-        >
-        <option value="default">class</option>
-        <option value="1">1</option>
-        <option value="2">2</option>
-        <option value="3">3</option>
-        <option value="4">4</option>
-        <option value="5">5</option>
-        <option value="6">6</option>
-        <option value="7">7</option>
-        <option value="8">8</option>
-        <option value="9">9</option>
-        <option value="10">10</option>
-        <option value="11">11</option>
-        <option value="12">12</option>
-        </select>
-        <input
-          className="register-input"
-          id="section"
-          type="text"
-          placeholder="Section"
-          value={Section}
-          onChange={handleSection}
-          required
-        />
+        /></div>
     </div>
+
   
 
   return (
@@ -375,7 +378,7 @@ function Buttons({
       >
       
       <button
-          className={`register-retake-button`}
+          className={`register-retake-button btn btn-primary`}
           onClick={() => {
             // clear all data
             setIsAdmin(false);
@@ -421,7 +424,6 @@ function Buttons({
 
           }}
         >
-        <img src={register_button} className="img"></img>
           <p className="text">{retake_text}</p>
         </button>
       </div>
@@ -435,7 +437,7 @@ function Buttons({
         ref={submit_ref}
       >
         <button
-          className={`register-ok-button`}
+          className={`register-ok-button btn btn-success`}
           onClick={async () => {
             if (Name == ''){alert("Name Is Empty!");}
             else if (Email == ''){alert("Email Is Empty!");}
@@ -457,7 +459,6 @@ function Buttons({
             }
           }}
         >
-        <img src={submit_button} className="img"></img>
         <p className="text">Submit</p>
         </button>
       </div>
@@ -471,7 +472,7 @@ function Buttons({
         ref={cancel_register_ref}
       >
         <button
-          className={`register-cancel-button`}
+          className={`register-cancel-button btn btn-danger`}
           onClick={async () => {
             setIsAdmin(false);
             setIsRegistering(false);
@@ -481,9 +482,10 @@ function Buttons({
 
             setShowWebcam(true);
             setShowImg(false);
+            
+            submit_ref.current.style.display= "None"; 
           }}
         >
-        <img src={cancel_button} className="img"></img>
         <p className="text">Cancel</p>
         </button>
       </div>
@@ -491,14 +493,13 @@ function Buttons({
             isAdmin || isRegistering ? "hidden" : "visible"
           } login-container`}>
         <button
-          className={`login-button`}
+          className={`login-button btn btn-success`}
           onClick={async () => {
             // saveFrameToDisk(canvasRef, lastFrame, setLastFrame);
             // setIsRegistering(true);
             send_img_login();
           }}
         >
-        <img src={login_button} className="img"></img>
         <p className="text">Log In</p>  
         </button>
       </div>
@@ -506,12 +507,11 @@ function Buttons({
             isAdmin || isRegistering ? "hidden" : "visible"
           } logout-container`}>
         <button
-          className={`logout-button`}
+          className={`logout-button btn btn-danger`}
           onClick={() => {
-            send_img_logout();
+            send_img_logout(Logout);
           }}
         >
-        <img src={logout_button} className="img"></img>
         <p className="text">Log Out</p>
         </button>
       </div>
@@ -519,7 +519,7 @@ function Buttons({
             isAdmin || isRegistering ? "hidden" : "visible"
           } admin-container`}>
         <button
-          className="admin-button"
+          className="admin-button btn btn-primary"
           onClick={() => {
             setIsAdmin(true);
             setIsRegistering(false);
@@ -528,7 +528,6 @@ function Buttons({
             changeZIndexRegistering(1);
           }}
         >
-        <img src={admin_button} className="img"></img>
         <p className="text">Admin</p>
         </button>
       </div>
@@ -539,7 +538,7 @@ function Buttons({
         }}
       >
         <button
-          className={`register-button`}
+          className={`register-button btn btn-primary`}
           onClick={() => {
             setIsAdmin(false);
             setIsRegistering(true);
@@ -564,7 +563,6 @@ function Buttons({
             cancel_register_ref.current.style.margin= "0 0 0 0";
           }}
         >
-        <img src={register_button} className="img"></img>
         <p className="text">Register</p>
         </button>
       </div>  
@@ -576,7 +574,7 @@ function Buttons({
         }}
       >
         <button
-          className={`download-button`}
+          className={`download-button btn btn-primary`}
           onClick={() => {
             setIsAdmin(false);
             setIsRegistering(false);
@@ -587,7 +585,6 @@ function Buttons({
             downloadLogs();
           }}
         >
-        <img src={download_logs_icon} className="img"></img>
         <p className="text">Download Log</p>
         </button>
       </div>
@@ -599,7 +596,7 @@ function Buttons({
         }}
       >
         <button
-          className={`goback-button`}
+          className={`goback-button btn btn-primary`}
           onClick={() => {
             setIsAdmin(false);
             setIsRegistering(false);
@@ -608,9 +605,23 @@ function Buttons({
             changeZIndexRegistering(1);
           }}
         >
-        <img src={go_back_button} className="img"></img>
         <p className="text">Home Page</p>
         </button>
+      </div>
+      
+    <div className={`${
+            isAdmin || isRegistering ? "hidden" : "visible"
+          } logout-form-container`}>
+        
+      <input
+          className="form-control"
+          id="logout"
+          type="email"
+          placeholder="Email"
+          value={Logout}
+          onChange={handlelogout}
+          required
+        />
       </div>
     </div>
     
